@@ -24,7 +24,7 @@ int state = 0;
 String output = "";
 
 unsigned long asyncDelay = 0;
-int delayLength = 500;
+int delayLength = 250;
 
 char cstr[16];
 
@@ -49,36 +49,11 @@ void setup() {
 
   currentValue = digitalRead(inputClk);
 
-  
-  // put your setup code here, to run once:
-
 }
 
 void loop() {
     readRotaryEncoder();
-
-    
-    // test();
-    // test2();
-  // put your main code here, to run repeatedly:
-
-
 }
-
-// void testDisplayMenu(void){
-//   const char *menu[5] = {
-//   " Menu 1",
-//   " Menu 2",
-//   " Menu 3",
-//   " Menu 4",
-//   " Menu 5"
-//   }
-
-//   previousValue
-// }
-
-
-
 
 void test(void){
     previousValue = digitalRead(inputClk);
@@ -94,8 +69,7 @@ void test(void){
       display.write(itoa(counter, cstr, 10));
       display.setCursor(0, counter);
       display.display();
-      
-      // display.write("\n");
+
     Serial.print(digitalRead(inputDt));
     Serial.print("Position : ");
     Serial.print(counter);
@@ -123,8 +97,6 @@ void test(void){
 
 void readRotaryEncoder(void){
 
-  // display.clearDisplay();
-  // display.setCursor(0,0);
   previousValue = digitalRead(inputClk);
   if(currentValue != previousValue){
     if(digitalRead(inputDt) != previousValue && (state == 0 || state == 1)){
@@ -148,24 +120,6 @@ void readRotaryEncoder(void){
     }
     displaySomething();
   }
-
- 
-
-  
-
-  // for(int i = 0; i < 6; i++){
-  //   if(counter > -1 && counter < 6){
-  //     if(counter == i){
-  //       display.setTextColor(SSD1306_BLACK,SSD1306_WHITE);
-  //       display.println(menu[i]);
-  //     } else {
-  //       display.setTextColor(SSD1306_WHITE);
-  //       display.println(menu[i]);
-  //     }
-  //   }
-  //   }
-
-  // display.display();
 currentValue = previousValue;
 }
 
@@ -176,17 +130,4 @@ currentValue = previousValue;
     display.println(output);
     display.display();
   } 
-
-void test2(void){
-    previousValue = digitalRead(inputClk);
-  if(currentValue != previousValue){
-    if(digitalRead(inputDt) != previousValue){
-      counter ++;
-      } else {
-      counter --;
-    }
-    Serial.println(counter);
-  }
-  currentValue = previousValue;
-}
 
