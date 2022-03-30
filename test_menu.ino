@@ -7,6 +7,7 @@ using namespace std;
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64
 
+#define inputSw 2
 #define inputClk 3
 #define inputDt 4
 
@@ -24,9 +25,26 @@ int state = 0;
 String output = "";
 
 unsigned long asyncDelay = 0;
-int delayLength = 250;
+unsigned long lastButtonPress = 50;
+int delayLength = 500;
 
 char cstr[16];
+
+  String menu1 = "menu1";
+  String menu2 = "menu2";
+  String menu3 = "menu3";
+  String menu4 = "menu4";
+  String menu5 = "menu5";
+
+// String headerMenu = "Arduino DSP Menu";
+
+// String menu[5] = {
+//   "Menu 1",
+//   "Menu 2",
+//   "Menu 3",
+//   "Menu 4",
+//   "Menu 5"
+// };
 
 void setup() {
   Serial.begin(9600);
@@ -36,6 +54,7 @@ void setup() {
     for(;;); // Don't proceed, loop forever
   }
   
+  pinMode(inputSw, INPUT_PULLUP);
   pinMode(inputClk, INPUT);
   pinMode(inputDt, INPUT);
 
@@ -52,51 +71,28 @@ void setup() {
 }
 
 void loop() {
-    readRotaryEncoder();
+  // display.setTextColor(SSD1306_WHITE);
+  // display.setCursor(30,0);
+  // display.display();
+  readSwitch();
+  showMenu();
+  readRotaryEncoder();
 }
 
-void test(void){
-    previousValue = digitalRead(inputClk);
-  if(currentValue != previousValue){
-    if(digitalRead(inputDt) != previousValue){
-      counter ++;
-      } else {
-      counter --;
+void readSwitch(){
+  if(digitalRead(inputSw) == LOW){
+    if(millis() - lastButtonPress > 50){
+    Serial.println("Tombol ditekan");
     }
-    if(counter > 0 && counter < 64){
-      display.clearDisplay();
-      display.write("Position : ");
-      display.write(itoa(counter, cstr, 10));
-      display.setCursor(0, counter);
-      display.display();
-
-    Serial.print(digitalRead(inputDt));
-    Serial.print("Position : ");
-    Serial.print(counter);
-    Serial.println(" ");
-    } else if(counter < 4){
-      minHeight = counter;
-      display.clearDisplay();
-      display.write("Maximum value");
-      Serial.println("Maximum value");
-      display.setCursor(0,minHeight);
-      display.display();
-      counter = 4;
-    } else if(counter > 60) {
-      maxHeight = counter;
-      display.clearDisplay();
-      Serial.println("Maximum value");
-      display.write("Maximum value");
-      display.setCursor(0,maxHeight);
-      display.display();
-      counter = 58;
-    }
+lastButtonPress = millis();
   }
-  currentValue = previousValue;
+  delay(1);
+
 }
+
+
 
 void readRotaryEncoder(void){
-
   previousValue = digitalRead(inputClk);
   if(currentValue != previousValue){
     if(digitalRead(inputDt) != previousValue && (state == 0 || state == 1)){
@@ -118,8 +114,9 @@ void readRotaryEncoder(void){
       asyncDelay+=delayLength;
       state = 0;
     }
-    displaySomething();
+    // displaySomething();
   }
+  // showMenu();
 currentValue = previousValue;
 }
 
@@ -129,5 +126,61 @@ currentValue = previousValue;
     display.setTextColor(SSD1306_WHITE);
     display.println(output);
     display.display();
-  } 
+  }
 
+void showMenu(void){
+
+    display.setTextSize(1);
+    display.clearDisplay();
+    display.setTextColor(WHITE);
+    display.setCursor(15, 0);
+    display.print("MAIN MENU");
+    display.drawFastHLine(0,10,128,WHITE);
+
+if(counter > -1 && counter < 6){
+  if(counter == 0){
+    displayMenuItem(menu1, 10, true);
+    displayMenuItem(menu2, 20, false);
+    displayMenuItem(menu3, 30, false);
+    displayMenuItem(menu4, 40, false);
+    displayMenuItem(menu5, 50, false);
+  } else if(counter == 1){
+    displayMenuItem(menu1, 10, false);
+    displayMenuItem(menu2, 20, true);
+    displayMenuItem(menu3, 30, false);
+    displayMenuItem(menu4, 40, false);
+    displayMenuItem(menu5, 50, false);
+  } else if(counter == 2){
+    displayMenuItem(menu1, 10, false);
+    displayMenuItem(menu2, 20, false);
+    displayMenuItem(menu3, 30, true);
+    displayMenuItem(menu4, 40, false);
+    displayMenuItem(menu5, 50, false);
+  } else if(counter == 3){
+    displayMenuItem(menu1, 10, false);
+    displayMenuItem(menu2, 20, false);
+    displayMenuItem(menu3, 30, false);
+    displayMenuItem(menu4, 40, true);
+    displayMenuItem(menu5, 50, false);
+  } else if(counter == 4){
+    displayMenuItem(menu1, 10, false);
+    displayMenuItem(menu2, 20, false);
+    displayMenuItem(menu3, 30, false);
+    displayMenuItem(menu4, 40, false);
+    displayMenuItem(menu5, 50, true);
+  }
+}
+
+  display.display();
+
+}
+
+void displayMenuItem(String item, int position, boolean selected){
+  if(selected){
+    display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+  } else {
+    display.setTextColor(SSD1306_WHITE);
+  }
+  display.setCursor(0, position);
+  display.print(item);
+}
