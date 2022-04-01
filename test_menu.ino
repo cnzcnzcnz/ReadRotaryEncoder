@@ -23,6 +23,13 @@ int maxHeight;
 int minHeight;
 int state = 0;
 String output = "";
+volatile boolean turned;
+
+int latestInputCLK;
+int latestInputDT;
+long timeOfLastDebounce = 0;
+double delayOfDebounce = 0.01;
+
 
 unsigned long asyncDelay = 0;
 unsigned long lastButtonPress = 50;
@@ -67,21 +74,109 @@ void setup() {
   display.setCursor(0,0);
 
   currentValue = digitalRead(inputClk);
+  attachInterrupt(1, rotaryDetect, CHANGE);
 
+  latestInputCLK = digitalRead(inputClk);
+  latestInputDT = digitalRead(inputDt);
+
+
+    while(1) {
+  // readSwitch();
+  // showMenu();
+  // readRotaryEncoder();
+  // readDigitalRead();
+  anotherRotaryChecker();
+  showMenu();
+  }
+
+}
+
+void anotherRotaryChecker(void){
+  if((millis() - timeOfLastDebounce) > delayOfDebounce){
+    checkRotary();
+
+    latestInputCLK = digitalRead(inputClk);
+    latestInputDT = digitalRead(inputDt);
+
+    timeOfLastDebounce = millis();
+  }
+}
+
+void rotaryDetect(void) {
+  turned=true;
+}
+
+void checkRotary(void) {
+  if(latestInputCLK == 0 && latestInputDT == 1){
+    if(digitalRead(inputClk) == 1 && digitalRead(inputDt) == 0){
+      counter++;
+      Serial.println(counter);
+    } else if(digitalRead(inputClk) == 1 && digitalRead(inputDt) == 1){
+      counter--;
+      Serial.println(counter);
+    }
+  } else if(latestInputCLK == 1 && latestInputDT == 0){
+    if(digitalRead(inputClk) == 0 && digitalRead(inputDt) == 1){
+    counter++;
+    Serial.println(counter);
+    } else if(digitalRead(inputClk) == 0 && digitalRead(inputDt) == 0){
+        counter--;
+        Serial.println(counter);
+    }
+  } else if(latestInputCLK == 1 && latestInputDT == 1){
+    if(digitalRead(inputClk) == 0 && digitalRead(inputDt) == 1){
+      counter++;
+      Serial.println(counter);
+    } else if(digitalRead(inputClk) == 0 && digitalRead(inputDt) == 1){
+counter--;
+Serial.println(counter);
+    }
+  } else if(latestInputCLK == 0 && latestInputDT == 0){
+    if(digitalRead(inputClk) == 1 && digitalRead(inputDt) == 0){
+counter++;
+Serial.println(counter);
+    } else if(digitalRead(inputClk) == 1 && digitalRead(inputDt) == 0){
+counter--;
+Serial.println(counter);
+    }
+  }
+
+  // if(digitalRead(inputClk) ^= 0 ^= digitalRead(inputDt) == 1){
+  //   Serial.println("CW");
+  // } else if(digitalRead(inputClk) == 1 ^= digitalRead(inputDt) == 1){
+  //   Serial.println("CCW");
+  // }
 }
 
 void loop() {
   // display.setTextColor(SSD1306_WHITE);
   // display.setCursor(30,0);
   // display.display();
-  readSwitch();
-  showMenu();
-  readRotaryEncoder();
+  // while(1) {
+  // readSwitch();
+  // // showMenu();
+  // readRotaryEncoder();
+  // }
+
+}
+
+void readDigitalRead(void){
+  // if(turned){
+  //   turned = false;
+  // Serial.print("InputCLK: ");
+  // Serial.println(digitalRead(inputClk));
+  // Serial.print("InputDT: ");
+  // Serial.println(digitalRead(inputDt));
+  // }
+  // if(digitalRead(inputClk) ^= digitalRead(inputDt)){
+  //   Serial.println("Masuk");
+  // }
+
 }
 
 void readSwitch(){
   if(digitalRead(inputSw) == LOW){
-    if(millis() - lastButtonPress > 50){
+    if(millis() - lastButtonPress > 150){
     Serial.println("Tombol ditekan");
     }
 lastButtonPress = millis();
@@ -114,6 +209,12 @@ void readRotaryEncoder(void){
       asyncDelay+=delayLength;
       state = 0;
     }
+
+    if(counter < 0){
+      counter = 0;
+    } else if(counter > 4) {
+      counter = 4;
+    }
     // displaySomething();
   }
   // showMenu();
@@ -129,15 +230,19 @@ currentValue = previousValue;
   }
 
 void showMenu(void){
+      if(counter < 0){
+      counter = 0;
+    } else if(counter > 4) {
+      counter = 4;
+    }
 
     display.setTextSize(1);
     display.clearDisplay();
     display.setTextColor(WHITE);
-    display.setCursor(15, 0);
+    display.setCursor(30, 0);
     display.print("MAIN MENU");
     display.drawFastHLine(0,10,128,WHITE);
 
-if(counter > -1 && counter < 6){
   if(counter == 0){
     displayMenuItem(menu1, 10, true);
     displayMenuItem(menu2, 20, false);
@@ -169,7 +274,6 @@ if(counter > -1 && counter < 6){
     displayMenuItem(menu4, 40, false);
     displayMenuItem(menu5, 50, true);
   }
-}
 
   display.display();
 
